@@ -82,7 +82,8 @@
 		var user = firebase.auth().currentUser;
 		if(user != null){
 			if(currentMView != MasterViews.CLIENT_INFO){
-				clearCollapse();
+				$("#secondary-collapse-container").collapse("hide");
+				setTimeout(clearSecondaryCollapse(), 500);
 				currentMView = MasterViews.CLIENT_INFO;
 				var clientNames = [];
 				var rootQuery = firebase.database().ref("/Clients/").orderByKey();
@@ -105,7 +106,8 @@
 		var user = firebase.auth().currentUser;
 		if(user != null){
 			if(currentMView != MasterViews.CLIENT_LOGS){
-				clearCollapse();
+				$("#secondary-collapse-container").collapse("hide");
+				setTimeout(clearSecondaryCollapse(), 500);
 				currentMView = MasterViews.CLIENT_LOGS;
 				//TODO: Set up nodes to view client logs(i.e. Buttons)
 			}
@@ -117,7 +119,8 @@
 		var user = firebase.auth().currentUser;
 		if(user != null){
 			if(currentMView != MasterViews.NEW_WORKOUT){
-				clearCollapse();
+				$("#secondary-collapse-container").collapse("hide");
+				setTimeout(clearSecondaryCollapse(), 500);
 				currentMView = MasterViews.NEW_WORKOUT;
 				//TODO: Set up fields to push new Workout to devices.
 			}
@@ -129,7 +132,8 @@
 		var user = firebase.auth().currentUser;
 		if(user != null){
 			if(currentMView != MasterViews.PUSH_NOTIFICATION){
-				clearCollapse();
+				$("#secondary-collapse-container").collapse("hide");
+				setTimeout(clearSecondaryCollapse(), 500);
 				currentMView = MasterViews.PUSH_NOTIFICATION;
 				//TODO: Set up fields to push a simple message to devices.
 			}
@@ -170,18 +174,18 @@
 			var right = document.getElementById("right-col2");
 			var row = document.getElementById("tertiary-collapse-container");
 			var Query = firebase.database().ref("/Clients/" + e.target.innerHTML).orderByKey();
+
 			Query.once("value")
 			.then(function(snapshot){
-				clearCollapse();
+				clearTertiaryCollapse();
 				snapshot.forEach(function(childSnapshot){
 					switch(childSnapshot.key) {
-
 						case "email":
 						var email = document.createElement("p");
 						email.innerHTML = "Email:";
 						email.className = "info";
 						var emailValue = document.createElement("p");
-						emailValue.innerHTML = childSnapshot.val();	
+						emailValue.innerHTML = childSnapshot.val();
 						emailValue.className = "info";					
 						left.appendChild(email);
 						right.appendChild(emailValue);
@@ -230,6 +234,9 @@
 				btn.setAttribute("id", "food-log-button");
 				btn.className = "btn btn-info food-log";
 				btn.innerHTML = "View Food Log";
+				btn.addEventListener('click', function(e){
+					viewFoodLog(e, snapshot.key);
+				});
 				//row.appendChild(btn);
 				document.getElementById("tertiary-collapse-container").appendChild(btn);
 				$("#tertiary-collapse-container").collapse("show");	
@@ -240,10 +247,37 @@
 		}
 	}
 
+	function viewFoodLog(e, client){
+		var user = firebase.auth().currentUser;
+		if(user != null){
+			var classes = e.target.className
+			var email = classes.substring(classes.indexOf('_')+1, classes.length)
 
+			var Query = firebase.database().ref("/Clients/" + client + "/food log").orderByKey();
+			Query.once("value")
+			.then(function(snapshot){
+				var foodLogJson = {};
+								snapshot.forEach(function(childSnapshot){
+					var dateObj = {};
+					childSnapshot.forEach(function(grandchildSnapshot){
+						dateObj[grandchildSnapshot.key] = grandchildSnapshot.val();
+					});							
+					foodLogJson[childSnapshot.key] = dateObj;
+				});
+				displayFoodLog(foodLogJson);
+			});
 
-	function clearCollapse(){
+		}else{
+			popup("You are not logged in and cannot access this functionality.");	
+		}
+	}
 
+	function displayFoodLog(foodJSON){
+		console.log(foodJSON);
+		$("#quaternary-collapse-container").collapse("show");
+	}
+
+	function clearTertiaryCollapse(){
 		var left = document.getElementById("left-col2");
 		var right = document.getElementById("right-col2");
 		var row = document.getElementById("tertiary-collapse-container");
@@ -253,11 +287,36 @@
 		while(right.firstChild){
 			right.removeChild(right.firstChild);
 		}
-		var toRemove = document.getElementById("food-log-button")
+		var toRemove = document.getElementById("food-log-button");
 		if(toRemove){
 			row.removeChild(toRemove);
 		}
-
 	}
 
-}());
+	function clearSecondaryCollapse(){
+		var left = document.getElementById("left-col1");
+		var right = document.getElementById("right-col1");
+		while(left.firstChild){
+			left.removeChild(left.firstChild);
+		}
+		while(right.firstChild){
+			right.removeChild(right.firstChild);
+		}
+	}
+
+	/*The fuck was I doing here? Works tho
+
+	function loadXMLDoc() {
+ 		var xhttp = new XMLHttpRequest();
+  		xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+      		console.log(this.responseText);
+    		}
+  		};
+  		xhttp.open("GET", "test.txt", true);
+  		xhttp.send();
+  	}
+
+  	loadXMLDoc();*/
+
+  }());
