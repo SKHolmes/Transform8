@@ -12,6 +12,8 @@
 
 	firebase.initializeApp(config);
 
+	var db = firebase.firestore();
+
 	//Add elements
 	const emailTxt = document.getElementById("email-textbox");
 	const passTxt = document.getElementById("password-textbox");
